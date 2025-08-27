@@ -1,4 +1,4 @@
-# Minimal CASteer Implementation
+# Minimal CASteer
 
 A minimal, customizable implementation of [CASteer](https://arxiv.org/abs/2503.09630) for concept steering in Stable Diffusion models.
 
