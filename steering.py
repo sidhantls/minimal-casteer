@@ -56,7 +56,7 @@ class SteeringHooks:
         # use steering vectors if present
         if isinstance(self.steer_vectors, torch.Tensor):
             total_steps = self.steer_vectors.shape[0]
-            if self.last_half_timesteps and self.step < total_steps // 2:
+            if self.last_half_timesteps and self.step < 2:
                 self.step += 1
                 return x_seq
 
