@@ -93,20 +93,24 @@ def clear_steer_cache(steer_hooks: Sequence[SteeringHooks]) -> None:
         sh.step = 0
 
 
-def find_cross_attention_modules(unet):
+def find_cross_attention_modules(unet, select_blocks=None):
     """
     Finds all cross-attention modules in the UNet.
 
     Args:
-        unet: The UNet model (pipe.unet) to search for cross-attention modules. 
-
+        unet: The UNet model (pipe.unet) to search for cross-attention modules.
+        select_block: If None, finds all CA blocks. If string, returns block with select_block 
+            in the module name (for eg. "up_blocks", "mid_blocks", "down_blocks")
     Returns:
         List of tuples containing (module_name, module) for each cross-attention module found.
     """
     targets = []
     for name, m in unet.named_modules():
         if getattr(m, "is_cross_attention", False):
-            targets.append((name, m))
+            if select_blocks is None or any(item in name for item in select_blocks):
+                assert isinstance(select_blocks, list), "expected select_blocks to be of list type"
+
+                targets.append((name, m))
     return targets
 
 def add_steer_hooks(
@@ -114,6 +118,7 @@ def add_steer_hooks(
     steer_type: str = "default",
     save_every: int = 1,
     last_half_timesteps: bool = False,
+    select_blocks: Optional[List] = None
 ) -> List[SteeringHooks]:
     """Adds steering hooks to cross-attention layers in the Stable Diffusion pipeline.
 
@@ -123,12 +128,13 @@ def add_steer_hooks(
         save_every (int): Frequency at which to collect or apply steering vectors. Defaults to 1.
         last_half_timesteps (bool): If ``True``, steering vectors are applied only during the last
             half of diffusion timesteps.
-
+        select_blocks: Add steering hooks to only selected blocks (None, "up_blocks", "down_blocks", "mid_blocks":)
     Returns:
         List[SteeringHooks]: List of ``SteeringHooks`` objects registered to cross-attention layers.
     """
 
-    targets = find_cross_attention_modules(pipe.unet)
+    targets = find_cross_attention_modules(pipe.unet, select_blocks=select_blocks)
+
 
     steer_hooks = []
     for _, m in targets:
