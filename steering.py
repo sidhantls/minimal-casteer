@@ -107,7 +107,7 @@ def find_cross_attention_modules(unet, select_blocks=None):
     targets = []
     for name, m in unet.named_modules():
         if getattr(m, "is_cross_attention", False):
-            if select_blocks is None or any(item in name for item in select_blocks):
+            if select_blocks is not None and any(item in name for item in select_blocks):
                 assert isinstance(select_blocks, list), "expected select_blocks to be of list type"
 
                 targets.append((name, m))
